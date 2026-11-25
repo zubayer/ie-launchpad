@@ -1,0 +1,110 @@
+@import "tailwindcss";
+@import "@fontsource-variable/archivo/wdth.css";
+@import "katex/dist/katex.min.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  /* Engineering computation pad: pale green paper, faint grid, graphite ink */
+  --color-paper: #e9f0df;
+  --color-sheet: #f7faf2;
+  --color-grid: #d3e1c6;
+  --color-line: #bfd0b2;
+  --color-ink: #22302a;
+  --color-ink-2: #56645b;
+  --color-tape: #e5b400;
+  --color-sblue: #1e5aa8;
+  --color-sgreen: #2f7d4f;
+  --color-sred: #b8262d;
+  --color-sorange: #d9601a;
+}
+
+.dark {
+  --color-paper: #131b16;
+  --color-sheet: #1a241e;
+  --color-grid: #1f2b24;
+  --color-line: #2e3d34;
+  --color-ink: #e3ebdb;
+  --color-ink-2: #9cad9f;
+  --color-sblue: #6fa3e8;
+  --color-sgreen: #6cc08f;
+  --color-sred: #ec7a7f;
+  --color-sorange: #f0975e;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background-color: var(--color-paper);
+  background-image:
+    linear-gradient(var(--color-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Display type: Archivo stretched wide — the label-maker look of plant signage */
+.display { font-stretch: 125%; font-weight: 800; letter-spacing: -0.01em; line-height: 1.02; }
+.wide { font-stretch: 112%; font-weight: 650; }
+.narrow { font-stretch: 88%; }
+
+.sheet { background: var(--color-sheet); border: 1px solid var(--color-line); }
+.measure { max-width: 70ch; }
+
+/* Floor tape: the one bold device, used to mark domain and progress */
+.tape { height: 6px; border-radius: 1px; }
+.hazard {
+  background: repeating-linear-gradient(-45deg, #e5b400 0 10px, #22302a 10px 20px);
+}
+
+:focus-visible { outline: 3px solid var(--color-sblue); outline-offset: 2px; border-radius: 4px; }
+
+button, [role="button"] { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .5; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  padding: .55rem 1rem; border-radius: 6px; font-weight: 600; font-size: .95rem;
+  border: 1px solid var(--color-ink); background: var(--color-ink); color: var(--color-sheet);
+  transition: transform .08s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn-ghost { background: transparent; color: var(--color-ink); border-color: var(--color-line); }
+.btn-ghost:hover { border-color: var(--color-ink); }
+.btn-tape { background: var(--color-tape); color: #22302a; border-color: #b58e00; }
+.chip { display: inline-flex; align-items: center; gap: .35rem; padding: .1rem .55rem; border-radius: 999px; font-size: .8rem; border: 1px solid var(--color-line); color: var(--color-ink-2); }
+.input { width: 100%; padding: .6rem .8rem; border-radius: 6px; border: 1px solid var(--color-line); background: var(--color-sheet); color: var(--color-ink); }
+.input:focus { border-color: var(--color-sblue); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-sblue) 25%, transparent); }
+.label { font-size: .85rem; font-weight: 600; color: var(--color-ink-2); }
+
+.prose-ie p { margin: .6rem 0; }
+.prose-ie ul { list-style: disc; padding-left: 1.25rem; }
+.prose-ie ol { list-style: decimal; padding-left: 1.25rem; }
+.prose-ie li { margin: .25rem 0; }
+
+input[type="range"] { accent-color: var(--color-sblue); width: 100%; }
+
+.katex { font-size: 1.08em; }
+.katex-display { overflow-x: auto; overflow-y: hidden; padding: .25rem 0; }
+
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.draw { stroke-dasharray: 900; stroke-dashoffset: 900; animation: draw 2.2s ease-out .2s forwards; }
+@keyframes flip-in { from { transform: rotateX(70deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.flip-in { animation: flip-in .25s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .draw { animation: none; stroke-dashoffset: 0; }
+  .flip-in { animation: none; }
+  * { scroll-behavior: auto !important; }
+}
+
+@media print {
+  body { background: #fff; color: #000; font-size: 11pt; }
+  .no-print { display: none !important; }
+  .sheet { border: none; background: #fff; }
+  main { padding: 0 !important; }
+}
