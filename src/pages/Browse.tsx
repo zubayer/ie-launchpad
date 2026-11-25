@@ -7,6 +7,7 @@ import { SIM_META } from '../sims/registry'
 import { LEVEL_NAME, type DomainId, type Level } from '../types'
 import { statusOf, useStore } from '../lib/store'
 import { Bar, ConceptRow, PageHead, Rich, Section, Tex } from '../components/ui'
+import { WebAnswer } from '../components/Layout'
 
 export function Directory() {
   const [q, setQ] = useState('')
@@ -57,6 +58,12 @@ export function Directory() {
       <nav className="no-print mb-4 flex flex-wrap gap-1" aria-label="Jump to letter">
         {letters.map(([L]) => <a key={L} href={`#L-${L}`} className="rounded border border-line px-2 py-0.5 text-sm hover:border-ink">{L}</a>)}
       </nav>
+      {!list.length && q.trim().length > 1 && (
+        <div className="sheet rounded-lg p-5">
+          <p className="mb-3">No card matches “{q}” yet. Here is what the web says:</p>
+          <WebAnswer query={q.trim()} />
+        </div>
+      )}
       {letters.map(([L, items]) => (
         <section key={L} id={`L-${L}`} className="mb-6 scroll-mt-16">
           <h2 className="display mb-1 text-2xl">{L}</h2>

@@ -107,3 +107,17 @@ input[type="range"] { accent-color: var(--color-sblue); width: 100%; }
   .sheet { border: none; background: #fff; }
   main { padding: 0 !important; }
 }
+
+/* Glossary hover cards */
+.term-link { color: inherit; text-decoration: underline dotted var(--color-sblue); text-decoration-thickness: 2px; text-underline-offset: 3px; cursor: help; }
+.term-link:hover { color: var(--color-sblue); }
+.term-pop {
+  position: absolute; left: 0; top: calc(100% + 6px); z-index: 40; display: block; width: 19rem; max-width: 80vw;
+  padding: .75rem .85rem; border-radius: 8px; border: 1px solid var(--color-line); background: var(--color-sheet);
+  box-shadow: 0 12px 32px rgb(15 23 42 / .18); font-size: .95rem; font-style: normal; line-height: 1.45; text-align: left;
+}
+.pop-btn { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .55rem; border-radius: 6px; border: 1px solid var(--color-line); font-size: .8rem; font-weight: 600; color: var(--color-ink); background: var(--color-sheet); }
+.pop-btn:hover { border-color: var(--color-sblue); color: var(--color-sblue); }
+.ext-btn { display: inline-flex; align-items: center; gap: .4rem; padding: .45rem .8rem; border-radius: 6px; border: 1px solid var(--color-line); background: var(--color-sheet); font-weight: 600; font-size: .9rem; }
+.ext-btn:hover { border-color: var(--color-sblue); color: var(--color-sblue); }
+.algo-active { outline: 3px solid var(--color-sblue); box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-sblue) 18%, transparent); }

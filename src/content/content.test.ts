@@ -4,6 +4,9 @@ import { DOMAINS } from './domains'
 import { ROLES } from './roles'
 import { CASES } from './cases'
 import { SIM_META } from '../sims/registry'
+import { VIZ, EXTRA_SIM } from './visuals'
+import { ALGOS } from './algos'
+import { WIKI_TITLE } from '../lib/web'
 import { mmc, npv, irr } from '../lib/math'
 import { capability } from '../sims/Capability'
 import { oee } from '../sims/Oee'
@@ -58,6 +61,21 @@ describe('content integrity', () => {
     CASES.forEach((k) => k.concepts.forEach((id) => { if (!CONCEPT_MAP[id]) broken.push(`case ${k.id} -> ${id}`) }))
     SIM_META.forEach((s) => s.concepts.forEach((id) => { if (!CONCEPT_MAP[id]) broken.push(`sim ${s.id} -> ${id}`) }))
     expect(broken).toEqual([])
+  })
+
+  it('visuals, algorithms, wiki titles and extra sim links point to real concepts', () => {
+    const bad: string[] = []
+    Object.keys(VIZ).forEach((k) => { if (!CONCEPT_MAP[k]) bad.push('viz ' + k) })
+    Object.keys(ALGOS).forEach((k) => { if (!CONCEPT_MAP[k]) bad.push('algo ' + k) })
+    Object.keys(WIKI_TITLE).forEach((k) => { if (!CONCEPT_MAP[k]) bad.push('wiki ' + k) })
+    Object.entries(EXTRA_SIM).forEach(([k, v]) => { if (!CONCEPT_MAP[k]) bad.push('sim-concept ' + k); if (!SIM_META.some((s) => s.id === v)) bad.push('sim ' + v) })
+    expect(bad).toEqual([])
+  })
+
+  it('algorithm loop targets are valid steps', () => {
+    const bad: string[] = []
+    Object.entries(ALGOS).forEach(([k, a]) => a.nodes.forEach((n, i) => { if (n.k === 'decision' && n.back !== undefined && n.back !== 99 && (n.back < 0 || n.back >= a.nodes.length)) bad.push(`${k} step ${i}`) }))
+    expect(bad).toEqual([])
   })
 
   it('every domain has content', () => {

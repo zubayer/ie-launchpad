@@ -4,6 +4,8 @@ import { search } from '../lib/search'
 import { useStore } from '../lib/store'
 import { CONCEPTS } from '../content'
 import { DOMAIN_MAP } from '../content/domains'
+import { googleUrl, wiki, wikiSearchUrl } from '../lib/web'
+import { SelectionLookup, WikiCard, useWiki } from './Glossary'
 
 const NAV = [
   { to: '/', label: 'Today', end: true },
@@ -35,15 +37,35 @@ function useTheme() {
   }, [theme])
 }
 
+export function WebAnswer({ query }: { query: string }) {
+  const [dq, setDq] = useState(query)
+  useEffect(() => { const t = setTimeout(() => setDq(query), 450); return () => clearTimeout(t) }, [query])
+  const w = useWiki(() => wiki({ query: dq }), [dq])
+  return (
+    <div className="space-y-3">
+      <WikiCard data={w.data} loading={w.loading} query={query} />
+      <div className="flex flex-wrap gap-1.5">
+        <a className="pop-btn" href={googleUrl(query)} target="_blank" rel="noopener noreferrer">Google results ↗</a>
+        <a className="pop-btn" href={wikiSearchUrl(query)} target="_blank" rel="noopener noreferrer">Wikipedia search ↗</a>
+        <a className="pop-btn" href={`https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' explained')}`} target="_blank" rel="noopener noreferrer">YouTube ↗</a>
+      </div>
+    </div>
+  )
+}
+
+export const openGoogle = (q: string) => window.open(googleUrl(q), '_blank', 'noopener')
+
 export function SearchPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [q, setQ] = useState('')
   const [i, setI] = useState(0)
+  const [webQ, setWebQ] = useState('')
   const nav = useNavigate()
   const ref = useRef<HTMLInputElement>(null)
   const results = useMemo(() => search(q, 10), [q])
   useEffect(() => {
     if (open) {
       setQ('')
+      setWebQ('')
       setI(0)
       setTimeout(() => ref.current?.focus(), 10)
     }
@@ -66,13 +88,17 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
           value={q}
           onChange={(e) => {
             setQ(e.target.value)
+            setWebQ('')
             setI(0)
           }}
           onKeyDown={(e) => {
             if (e.key === 'Escape') onClose()
             if (e.key === 'ArrowDown') { e.preventDefault(); setI((x) => Math.min(x + 1, results.length - 1)) }
             if (e.key === 'ArrowUp') { e.preventDefault(); setI((x) => Math.max(x - 1, 0)) }
-            if (e.key === 'Enter' && results[i]) go(results[i].id)
+            if (e.key === 'Enter') {
+              if (results[i]) go(results[i].id)
+              else if (q.trim()) { openGoogle(q.trim()); setWebQ(q.trim()) }
+            }
           }}
           placeholder={`Search ${CONCEPTS.length} terms: FMEA, takt time, Cpk, etching…`}
           className="w-full border-b border-line bg-transparent px-4 py-4 text-lg outline-none"
@@ -95,7 +121,9 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
               </button>
             </li>
           ))}
-          {q && !results.length && <li className="px-4 py-6 text-ink-2">No match for “{q}”. Try an acronym (OEE, CPM) or a plain word (bottleneck).</li>}
+          {q && !results.length && !webQ && <li className="px-4 py-5 text-ink-2">No card for “{q}” yet. Press <kbd className="rounded border border-line px-1">Enter</kbd> to see what Google and Wikipedia say.</li>}
+          {webQ && <li className="px-4 py-4"><p className="label mb-2">From the web — Google opened in a new tab</p><WebAnswer query={webQ} /></li>}
+          {q && results.length > 0 && <li className="border-t border-line px-4 py-2 text-sm"><a className="underline" href={googleUrl(q)} target="_blank" rel="noopener noreferrer">Search Google for “{q}” ↗</a></li>}
           {!q && <li className="px-4 py-4 text-sm text-ink-2">Type a term, acronym or idea. Use ↑ ↓ and Enter.</li>}
         </ul>
       </div>
@@ -175,6 +203,7 @@ export default function Layout() {
         </footer>
       </div>
       <SearchPalette open={palette} onClose={() => setPalette(false)} />
+      <SelectionLookup />
     </div>
   )
 }

@@ -9,6 +9,7 @@ import { isDue } from '../lib/srs'
 import { streak, useStore } from '../lib/store'
 import { ConceptRow } from '../components/ui'
 import { FocusTimer } from '../components/FocusTimer'
+import { WebAnswer, openGoogle } from '../components/Layout'
 
 /** Signature moment: a control chart that draws itself, with one point out of control. */
 function ChartMark() {
@@ -33,6 +34,7 @@ function ChartMark() {
 
 export default function Home() {
   const [q, setQ] = useState('')
+  const [webQ, setWebQ] = useState('')
   const nav = useNavigate()
   const cards = useStore((s) => s.cards)
   const progress = useStore((s) => s.progress)
@@ -60,8 +62,8 @@ export default function Home() {
           <p className="measure mt-4 text-lg text-ink-2">
             {CONCEPTS.length} concepts across {DOMAINS.length} domains, each built in layers — plain meaning, analogy, math, worked example, shop-floor use and interview answer — plus simulators and spaced review.
           </p>
-          <form className="relative mt-6 max-w-xl" onSubmit={(e) => { e.preventDefault(); if (results[0]) nav(`/c/${results[0].id}`) }}>
-            <input className="input !py-3.5 text-lg" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Look up a term: FMEA, takt time, etching, random forest…" aria-label="Look up a term" />
+          <form className="relative mt-6 max-w-xl" onSubmit={(e) => { e.preventDefault(); if (results[0]) nav(`/c/${results[0].id}`); else if (q.trim()) { openGoogle(q.trim()); setWebQ(q.trim()) } }}>
+            <input className="input !py-3.5 text-lg" value={q} onChange={(e) => { setQ(e.target.value); setWebQ('') }} placeholder="Look up a term: FMEA, takt time, etching, random forest…" aria-label="Look up a term" />
             {q && (
               <ul className="sheet absolute inset-x-0 top-full z-10 mt-1 rounded-md shadow-lg">
                 {results.map((c) => (
@@ -71,7 +73,8 @@ export default function Home() {
                     </Link>
                   </li>
                 ))}
-                {!results.length && <li className="px-4 py-3 text-ink-2">No match. Try the <Link className="underline" to="/directory">A–Z directory</Link>.</li>}
+                {!results.length && !webQ && <li className="px-4 py-3 text-ink-2">No card for “{q}” yet. Press Enter to see what Google and Wikipedia say.</li>}
+                {webQ && <li className="px-4 py-3"><p className="label mb-2">From the web — Google opened in a new tab</p><WebAnswer query={webQ} /></li>}
               </ul>
             )}
           </form>
