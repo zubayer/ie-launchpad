@@ -34,17 +34,8 @@ function layersFor(c: Concept): Layer[] {
   if (simFor(c)) L.push({ id: 'sim', name: 'Simulate it' })
   L.push({ id: 'try', name: 'Check yourself' })
   if (c.iq?.length) L.push({ id: 'interview', name: 'Interview' })
-  L.push({ id: 'teach', name: 'Teach it back' })
   L.push({ id: 'more', name: 'Learn more' })
   return L
-}
-
-const STOP = new Set('about after again against because before being between could during every first through their there these those under where which while would should other using used often when what with that this from into than then they them your have has been were will also each such only more most very same over make made many much must does like just'.split(' '))
-function keyWords(c: Concept): string[] {
-  const words = (c.def + ' ' + c.one).toLowerCase().match(/[a-z][a-z-]{5,}/g) || []
-  const freq = new Map<string, number>()
-  words.forEach((w) => !STOP.has(w) && freq.set(w, (freq.get(w) || 0) + 1))
-  return [...freq.entries()].sort((a, b) => b[1] - a[1] || b[0].length - a[0].length).slice(0, 6).map((x) => x[0])
 }
 
 function Block({ id, n, name, children, onSeen }: { id: string; n: number; name: string; children: React.ReactNode; onSeen: (n: number) => void }) {
@@ -143,8 +134,6 @@ export default function ConceptPage() {
   const inDeck = useStore((s) => !!s.cards[id])
   const bookmarked = useStore((s) => s.bookmarks.includes(id))
   const toggleBookmark = useStore((s) => s.toggleBookmark)
-  const teach = useStore((s) => s.progress[id]?.teach || '')
-  const setTeach = useStore((s) => s.setTeach)
   const deepest = useStore((s) => s.progress[id]?.layers ?? -1)
   const [active, setActive] = useState(0)
   const [qSeed, setQSeed] = useState(1)
@@ -155,7 +144,6 @@ export default function ConceptPage() {
   const layers = useMemo(() => (c ? layersFor(c) : []), [c])
   const near = useMemo(() => (c ? neighbors(c) : []), [c])
   const question = useMemo(() => (c ? makeQuestion(c, CONCEPTS, rng(qSeed * 7919 + c.id.length)) : null), [c, qSeed])
-  const kws = useMemo(() => (c ? keyWords(c) : []), [c])
   const onSeen = useMemo(() => (n: number) => { setActive(n); reachLayer(id, n) }, [id, reachLayer])
 
   if (!c) return (
@@ -347,15 +335,6 @@ export default function ConceptPage() {
             <p className="mt-3 text-sm text-ink-2">Say your answer out loud before opening the model answer. More in <Link className="underline" to="/interview">Interview prep</Link>.</p>
           </Block>
         ) : null}
-
-        <Block id="teach" n={idx('teach')} name="Teach it back" onSeen={onSeen}>
-          <p className="measure text-[0.97rem] text-ink-2">Explain {c.term} in your own words as if to a new operator. If you can't explain it simply, go back one layer.</p>
-          <textarea className="input mt-3 min-h-32" value={teach} onChange={(e) => setTeach(c.id, e.target.value)} placeholder={`${c.term} is…`} aria-label="Your explanation" />
-          <div className="mt-2 flex flex-wrap gap-2 text-sm">
-            <span className="text-ink-2">Did you mention:</span>
-            {kws.map((k) => <span key={k} className={`chip ${teach.toLowerCase().includes(k) ? 'border-sgreen text-sgreen' : ''}`}>{k}</span>)}
-          </div>
-        </Block>
 
         <Block id="more" n={idx('more')} name="Learn more" onSeen={onSeen}>
           <p className="label mb-2">Search further (opens a new tab)</p>

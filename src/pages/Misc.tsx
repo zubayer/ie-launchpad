@@ -227,7 +227,6 @@ const METHODS = [
   ['Concrete → abstract', 'Every card moves from plain meaning and analogy to the math — so the formula arrives already making sense.', '/directory'],
   ['Worked → faded examples', 'Worked examples reveal one step at a time. Try the next step before you click; then solve the practice version from scratch.', '/directory'],
   ['Prediction (generation effect)', 'Every simulator asks you to predict first. Being wrong before seeing the answer is one of the fastest ways to learn.', '/lab'],
-  ['Feynman teach-back', 'Explain it simply in your own words. The key-word checklist shows what your explanation is missing.', '/directory'],
   ['Deliberate practice', 'Weak spots are ranked by error rate; drill the bottom ten instead of re-reading what you already know.', '/progress'],
   ['Focus blocks', 'Short, single-task sessions (Pomodoro) with breaks keep attention high. One concept per block works well.', '/'],
 ]
