@@ -65,7 +65,7 @@ export function ConceptRow({ c, showDomain = true }: { c: Concept; showDomain?: 
   return (
     <Link
       to={`/c/${c.id}`}
-      className="group flex items-start gap-3 border-b border-line px-1 py-2.5 hover:bg-sheet focus-visible:bg-sheet"
+      className="group flex items-start gap-3 border-b border-line px-1 py-2.5 hover:bg-sblue/5 focus-visible:bg-sblue/5"
     >
       <span className="mt-2"><StatusDot id={c.id} /></span>
       <span className="min-w-0 flex-1">

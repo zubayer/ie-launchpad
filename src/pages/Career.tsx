@@ -35,7 +35,7 @@ function RoleLine({ id, active }: { id: string; active: boolean }) {
   const r = ROLES.find((x) => x.id === id)!
   const p = useRoleProgress(r.concepts)
   return (
-    <Link to={`/roles/${r.id}`} className="block border-b border-line py-4 hover:bg-sheet">
+    <Link to={`/roles/${r.id}`} className="block border-b border-line py-4 hover:bg-sblue/5">
       <span className="flex items-baseline justify-between gap-2">
         <span className="wide text-lg">{r.title}{active && <span className="chip ml-2 align-middle !border-tape">Your path</span>}</span>
         <span className="text-sm text-ink-2">{p.opened}/{p.total}</span>
@@ -299,7 +299,7 @@ function Cases() {
   const c = CASES.find((x) => x.id === open)!
   return (
     <div className="grid gap-6 lg:grid-cols-[16rem_1fr]">
-      <ul className="space-y-1">{CASES.map((x) => <li key={x.id}><button onClick={() => setOpen(x.id)} className={`w-full rounded-md px-3 py-2 text-left text-sm ${x.id === open ? 'bg-sheet font-semibold' : 'text-ink-2 hover:bg-sheet'}`}>{x.title}</button></li>)}</ul>
+      <ul className="space-y-1">{CASES.map((x) => <li key={x.id}><button onClick={() => setOpen(x.id)} className={`w-full rounded-md px-3 py-2 text-left text-sm ${x.id === open ? 'bg-sheet font-semibold' : 'text-ink-2 hover:bg-sblue/5'}`}>{x.title}</button></li>)}</ul>
       {c && (
         <div className="sheet rounded-lg p-5">
           <h2 className="wide text-xl">{c.title}</h2>

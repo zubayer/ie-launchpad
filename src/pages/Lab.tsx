@@ -15,7 +15,7 @@ export function Lab() {
           <section key={d.id} className="mb-6">
             <h2 className="wide mb-1 flex items-center gap-2 text-lg"><span className="inline-block h-2 w-6 rounded-sm" style={{ background: d.tape }} />{d.name}</h2>
             {sims.map((s) => (
-              <Link key={s.id} to={`/lab/${s.id}`} className="block border-b border-line py-2.5 hover:bg-sheet">
+              <Link key={s.id} to={`/lab/${s.id}`} className="block border-b border-line py-2.5 hover:bg-sblue/5">
                 <span className="font-semibold">{s.name}</span>
                 <span className="block text-sm text-ink-2">{s.blurb}</span>
               </Link>

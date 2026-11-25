@@ -27,7 +27,7 @@ function useTheme() {
     const apply = () => {
       const dark = theme === 'dark' || (theme === 'system' && mq.matches)
       document.documentElement.classList.toggle('dark', dark)
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#131b16' : '#e9f0df')
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0f1522' : '#f4f6fa')
     }
     apply()
     mq.addEventListener('change', apply)
@@ -84,7 +84,7 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
               <button
                 onMouseEnter={() => setI(idx)}
                 onClick={() => go(c.id)}
-                className={`flex w-full items-start gap-3 px-4 py-2.5 text-left ${idx === i ? 'bg-paper' : ''}`}
+                className={`flex w-full items-start gap-3 px-4 py-2.5 text-left ${idx === i ? 'bg-sblue/10' : ''}`}
               >
                 <span className="mt-1.5 inline-block h-2 w-4 shrink-0 rounded-sm" style={{ background: DOMAIN_MAP[c.domain].tape }} />
                 <span>
@@ -146,7 +146,7 @@ export default function Layout() {
                 to={n.to}
                 end={n.end}
                 className={({ isActive }) =>
-                  `relative block rounded-md px-3 py-2 text-[0.95rem] ${isActive ? 'bg-paper font-semibold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:rounded-sm before:bg-tape' : 'text-ink-2 hover:bg-paper hover:text-ink'}`
+                  `relative block rounded-md px-3 py-2 text-[0.95rem] ${isActive ? 'bg-sblue/10 font-semibold text-sblue before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:rounded-sm before:bg-sblue' : 'text-ink-2 hover:bg-paper hover:text-ink'}`
                 }
               >
                 {n.label}

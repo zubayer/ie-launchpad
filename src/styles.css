@@ -6,40 +6,36 @@
 
 @theme {
   --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
-  /* Engineering computation pad: pale green paper, faint grid, graphite ink */
-  --color-paper: #e9f0df;
-  --color-sheet: #f7faf2;
-  --color-grid: #d3e1c6;
-  --color-line: #bfd0b2;
-  --color-ink: #22302a;
-  --color-ink-2: #56645b;
-  --color-tape: #e5b400;
-  --color-sblue: #1e5aa8;
-  --color-sgreen: #2f7d4f;
-  --color-sred: #b8262d;
-  --color-sorange: #d9601a;
+  /* Clear light: cool off-white page, white sheets, navy ink, one confident blue */
+  --color-paper: #f4f6fa;
+  --color-sheet: #ffffff;
+  --color-grid: #e9edf4;
+  --color-line: #dde3ec;
+  --color-ink: #172033;
+  --color-ink-2: #5a6678;
+  --color-tape: #f2b705;
+  --color-sblue: #2459d6;
+  --color-sgreen: #15803d;
+  --color-sred: #c2283a;
+  --color-sorange: #d4580f;
 }
 
 .dark {
-  --color-paper: #131b16;
-  --color-sheet: #1a241e;
-  --color-grid: #1f2b24;
-  --color-line: #2e3d34;
-  --color-ink: #e3ebdb;
-  --color-ink-2: #9cad9f;
-  --color-sblue: #6fa3e8;
-  --color-sgreen: #6cc08f;
-  --color-sred: #ec7a7f;
-  --color-sorange: #f0975e;
+  --color-paper: #0f1522;
+  --color-sheet: #161e2e;
+  --color-grid: #1a2335;
+  --color-line: #273247;
+  --color-ink: #e7ecf4;
+  --color-ink-2: #9ba8bc;
+  --color-sblue: #7aa5ff;
+  --color-sgreen: #4ade80;
+  --color-sred: #f87185;
+  --color-sorange: #fb9a5b;
 }
 
 html { -webkit-text-size-adjust: 100%; }
 body {
   background-color: var(--color-paper);
-  background-image:
-    linear-gradient(var(--color-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
-  background-size: 24px 24px;
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 17px;
@@ -52,13 +48,14 @@ body {
 .wide { font-stretch: 112%; font-weight: 650; }
 .narrow { font-stretch: 88%; }
 
-.sheet { background: var(--color-sheet); border: 1px solid var(--color-line); }
+.sheet { background: var(--color-sheet); border: 1px solid var(--color-line); box-shadow: 0 1px 2px rgb(15 23 42 / 0.04); }
+.dark .sheet { box-shadow: none; }
 .measure { max-width: 70ch; }
 
 /* Floor tape: the one bold device, used to mark domain and progress */
 .tape { height: 6px; border-radius: 1px; }
 .hazard {
-  background: repeating-linear-gradient(-45deg, #e5b400 0 10px, #22302a 10px 20px);
+  background: repeating-linear-gradient(-45deg, #f2b705 0 10px, #172033 10px 20px);
 }
 
 :focus-visible { outline: 3px solid var(--color-sblue); outline-offset: 2px; border-radius: 4px; }
@@ -69,13 +66,15 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
   padding: .55rem 1rem; border-radius: 6px; font-weight: 600; font-size: .95rem;
-  border: 1px solid var(--color-ink); background: var(--color-ink); color: var(--color-sheet);
-  transition: transform .08s ease;
+  border: 1px solid var(--color-sblue); background: var(--color-sblue); color: #fff;
+  transition: transform .08s ease, filter .15s ease;
 }
+.btn:hover { filter: brightness(1.08); }
+.dark .btn:not(.btn-ghost):not(.btn-tape) { color: #0f1522; }
 .btn:active { transform: translateY(1px); }
-.btn-ghost { background: transparent; color: var(--color-ink); border-color: var(--color-line); }
-.btn-ghost:hover { border-color: var(--color-ink); }
-.btn-tape { background: var(--color-tape); color: #22302a; border-color: #b58e00; }
+.btn-ghost { background: var(--color-sheet); color: var(--color-ink); border-color: var(--color-line); }
+.btn-ghost:hover { border-color: var(--color-sblue); color: var(--color-sblue); filter: none; }
+.btn-tape { background: var(--color-tape); color: #172033; border-color: #d39e00; }
 .chip { display: inline-flex; align-items: center; gap: .35rem; padding: .1rem .55rem; border-radius: 999px; font-size: .8rem; border: 1px solid var(--color-line); color: var(--color-ink-2); }
 .input { width: 100%; padding: .6rem .8rem; border-radius: 6px; border: 1px solid var(--color-line); background: var(--color-sheet); color: var(--color-ink); }
 .input:focus { border-color: var(--color-sblue); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-sblue) 25%, transparent); }

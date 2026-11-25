@@ -3,14 +3,14 @@ import type { Domain, DomainId } from '../types'
 // Accent colors borrow from 5S floor-marking tape: yellow lanes, blue/green WIP,
 // orange inspection, red defects, black equipment.
 export const TAPE = {
-  yellow: '#D9A900',
-  blue: '#1E5AA8',
-  green: '#2F7D4F',
-  red: '#B8262D',
-  orange: '#D9601A',
-  graphite: '#3A4740',
-  teal: '#16797A',
-  violet: '#6A4C9C',
+  yellow: '#E0A800',
+  blue: '#2459D6',
+  green: '#15803D',
+  red: '#C2283A',
+  orange: '#E06A1B',
+  graphite: '#475569',
+  teal: '#0E8A8C',
+  violet: '#7C4DDB',
 }
 
 export const DOMAINS: Domain[] = [

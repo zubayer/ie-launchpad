@@ -126,7 +126,7 @@ export default function Home() {
         <h2 className="wide mb-4 text-xl">Where do you want to work?</h2>
         <div className="grid gap-x-8 sm:grid-cols-2 lg:grid-cols-3">
           {ROLES.map((r) => (
-            <Link key={r.id} to={`/roles/${r.id}`} className="border-b border-line py-3 hover:bg-sheet">
+            <Link key={r.id} to={`/roles/${r.id}`} className="border-b border-line py-3 hover:bg-sblue/5">
               <span className="font-semibold">{r.title}</span>
               <span className="block text-sm text-ink-2">{r.summary}</span>
             </Link>

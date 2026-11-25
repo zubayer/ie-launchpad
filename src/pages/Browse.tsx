@@ -80,7 +80,7 @@ function DomainLine({ id }: { id: DomainId }) {
   const d = DOMAIN_MAP[id]
   const p = useDomainProgress(id)
   return (
-    <Link to={`/d/${id}`} className="group grid grid-cols-[0.5rem_1fr] gap-4 border-b border-line py-4 hover:bg-sheet">
+    <Link to={`/d/${id}`} className="group grid grid-cols-[0.5rem_1fr] gap-4 border-b border-line py-4 hover:bg-sblue/5">
       <span className="rounded-sm" style={{ background: d.tape }} />
       <span>
         <span className="flex flex-wrap items-baseline justify-between gap-2">
