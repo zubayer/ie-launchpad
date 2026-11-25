@@ -6,7 +6,9 @@ import { CASES } from './cases'
 import { SIM_META } from '../sims/registry'
 import { VIZ, EXTRA_SIM } from './visuals'
 import { ALGOS } from './algos'
-import { WIKI_TITLE } from '../lib/web'
+import { WIKI_TITLE, SE_SITE } from '../lib/web'
+import { SUB_ROLES, TITLE_PATH, jobsFor } from './jobs'
+import { WIKI_TERMS, CONCEPT_ALIAS } from './wikiTerms'
 import { mmc, npv, irr } from '../lib/math'
 import { capability } from '../sims/Capability'
 import { oee } from '../sims/Oee'
@@ -134,5 +136,32 @@ describe('simulator math', () => {
   it('NPV / IRR', () => {
     expect(npv(0.1, [-100, 110])).toBeCloseTo(0, 9)
     expect(irr([-100, 110])).toBeCloseTo(0.1, 6)
+  })
+})
+
+describe('jobs and Wikipedia keywords', () => {
+  it('every sub-area role list points at a real domain/sub', () => {
+    for (const key of Object.keys(SUB_ROLES)) {
+      const [dom, sub] = key.split('/')
+      const d = DOMAINS.find((x) => x.id === dom)
+      expect(d, key).toBeTruthy()
+      expect(d!.subs, key).toContain(sub)
+    }
+  })
+  it('title → path links resolve to real role paths', () => {
+    for (const [t, id] of Object.entries(TITLE_PATH)) expect(ROLES.some((r) => r.id === id), `${t} → ${id}`).toBe(true)
+  })
+  it('every concept lists at least 4 job titles', () => {
+    for (const c of CONCEPTS) expect(jobsFor(c).titles.length, c.id).toBeGreaterThanOrEqual(4)
+  })
+  it('role-path hits report a valid step', () => {
+    for (const c of CONCEPTS) for (const p of jobsFor(c).paths) expect(p.step >= 1 && p.step <= p.of).toBe(true)
+  })
+  it('Wikipedia keywords have titles and concept aliases resolve', () => {
+    for (const [k, t] of Object.entries(WIKI_TERMS)) { expect(k.length, k).toBeGreaterThan(1); expect(t.trim().length, k).toBeGreaterThan(0) }
+    for (const [k, id] of Object.entries(CONCEPT_ALIAS)) expect(CONCEPT_MAP[id], `${k} → ${id}`).toBeTruthy()
+  })
+  it('Stack Exchange site chosen for every domain', () => {
+    for (const d of DOMAINS) expect(SE_SITE[d.id]?.site, d.id).toBeTruthy()
   })
 })

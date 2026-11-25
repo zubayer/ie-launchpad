@@ -28,6 +28,7 @@ export interface Settings {
   planStart: string // YYYY-MM-DD
   planEnd: string
   focusMin: number
+  jobLocation?: string // optional city/state for job-board links
 }
 
 interface State {

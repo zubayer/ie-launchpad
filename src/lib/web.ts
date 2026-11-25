@@ -76,6 +76,7 @@ export const WIKI_TITLE: Record<string, string> = {
 }
 
 const q = (s: string) => encodeURIComponent(s)
+const cleanTerm = (s: string) => s.replace(/\s*\(.*?\)\s*/g, ' ').trim()
 export const searchName = (c: Concept) => (c.full && c.full.length < 60 ? `${c.term} ${c.full}` : c.term).replace(/[()]/g, '')
 
 export const links = (c: Concept) => {
@@ -94,9 +95,9 @@ export const links = (c: Concept) => {
 export const googleUrl = (s: string) => `https://www.google.com/search?q=${q(s)}`
 export const wikiSearchUrl = (s: string) => `https://en.wikipedia.org/w/index.php?search=${q(s)}`
 
-export interface WikiSummary { title: string; extract: string; url: string; thumb?: string; desc?: string }
+export interface WikiSummary { title: string; extract: string; url: string; thumb?: string; desc?: string; permalink?: string }
 
-const CACHE_KEY = 'ie-wiki-cache-v1'
+const CACHE_KEY = 'ie-wiki-cache-v2'
 const mem: Record<string, WikiSummary | null> = (() => {
   try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || '{}') } catch { return {} }
 })()
@@ -107,7 +108,9 @@ async function summary(title: string): Promise<WikiSummary | null> {
   if (!r.ok) return null
   const j = await r.json()
   if (j.type === 'disambiguation' || !j.extract) return null
-  return { title: j.title, extract: j.extract, url: j.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${q(j.title)}`, thumb: j.thumbnail?.source, desc: j.description }
+  const url = j.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${q(String(j.title).replace(/ /g, '_'))}`
+  const permalink = j.revision ? `https://en.wikipedia.org/w/index.php?title=${q(String(j.title).replace(/ /g, '_'))}&oldid=${j.revision}` : undefined
+  return { title: j.title, extract: j.extract, url, thumb: j.thumbnail?.source, desc: j.description, permalink }
 }
 
 async function searchTitle(query: string): Promise<string | null> {
@@ -135,3 +138,98 @@ export async function wiki(opts: { title?: string; query?: string }): Promise<Wi
 }
 
 export const wikiFor = (c: Concept) => wiki(WIKI_TITLE[c.id] ? { title: WIKI_TITLE[c.id] } : { query: `${c.full || c.term} ${DOMAIN_HINT[c.domain]}` })
+
+/* ---------- More live sources (all free, keyless, browser-side) ---------- */
+
+/** One-click "ask" links that open real-time search and AI answer engines in a new tab. */
+export const askLinks = (topic: string) => {
+  const t = q(topic)
+  const prompt = q(`Explain "${topic}" for an industrial engineering student preparing for job interviews: definition, how it works, a real example, tools used, and one common interview question.`)
+  return [
+    { label: 'Google', href: `https://www.google.com/search?q=${t}` },
+    { label: 'Google AI Mode', href: `https://www.google.com/search?udm=50&q=${prompt}` },
+    { label: 'Perplexity', href: `https://www.perplexity.ai/search?q=${prompt}` },
+    { label: 'ChatGPT', href: `https://chatgpt.com/?q=${prompt}` },
+    { label: 'Claude', href: `https://claude.ai/new?q=${prompt}` },
+    { label: 'Bing', href: `https://www.bing.com/search?q=${t}` },
+    { label: 'DuckDuckGo', href: `https://duckduckgo.com/?q=${t}` },
+    { label: 'Google News', href: `https://news.google.com/search?q=${t}` },
+    { label: 'YouTube', href: `https://www.youtube.com/results?search_query=${q(topic + ' explained')}` },
+  ]
+}
+
+const memo = new Map<string, Promise<unknown>>()
+function once<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  if (!memo.has(key)) memo.set(key, fn().catch(() => null as T))
+  return memo.get(key) as Promise<T>
+}
+function store<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  try { const hit = sessionStorage.getItem(key); if (hit) return Promise.resolve(JSON.parse(hit) as T) } catch { /* ignore */ }
+  return once(key, async () => { const v = await fn(); try { if (v) sessionStorage.setItem(key, JSON.stringify(v)) } catch { /* ignore */ } return v })
+}
+
+export interface WikiHit { title: string; snippet: string; url: string }
+/** Top Wikipedia search results with snippets (Wikipedia's own live search engine). */
+export const wikiSearch = (query: string, n = 6) => store<WikiHit[] | null>(`wsr:${query}`, async () => {
+  const r = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${q(query)}&srlimit=${n}&format=json&origin=*`)
+  if (!r.ok) return null
+  const j = await r.json()
+  return (j?.query?.search || []).map((h: { title: string; snippet: string }) => ({ title: h.title, snippet: h.snippet.replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&amp;/g, '&'), url: `https://en.wikipedia.org/wiki/${q(h.title.replace(/ /g, '_'))}` }))
+})
+
+export interface Paper { title: string; year?: number; cites?: number; url: string; venue?: string }
+/** Research papers from OpenAlex (open scholarly index): most relevant overall, or most relevant from the last ~2 years. */
+export const papers = (query: string, sort: 'relevance' | 'recent' = 'relevance') => store<Paper[] | null>(`oa:${sort}:${query}`, async () => {
+  const s = sort === 'recent' ? `&filter=from_publication_date:${new Date().getFullYear() - 2}-01-01` : ''
+  const r = await fetch(`https://api.openalex.org/works?search=${q(query)}&per-page=6${s}&select=id,display_name,publication_year,cited_by_count,doi,primary_location`)
+  if (!r.ok) return null
+  const j = await r.json()
+  return (j.results || []).map((w: { id: string; display_name: string; publication_year?: number; cited_by_count?: number; doi?: string; primary_location?: { source?: { display_name?: string } } }) => ({
+    title: w.display_name, year: w.publication_year, cites: w.cited_by_count, url: w.doi || w.id, venue: w.primary_location?.source?.display_name,
+  }))
+})
+
+// Stack Exchange community that best matches each area (all have public, CORS-enabled APIs).
+export const SE_SITE: Record<DomainId, { site: string; name: string }> = {
+  stats: { site: 'stats', name: 'Cross Validated' }, quality: { site: 'stats', name: 'Cross Validated' }, doe: { site: 'stats', name: 'Cross Validated' },
+  or: { site: 'or', name: 'Operations Research SE' }, simulation: { site: 'or', name: 'Operations Research SE' }, scm: { site: 'or', name: 'Operations Research SE' },
+  service: { site: 'or', name: 'Operations Research SE' }, datasci: { site: 'datascience', name: 'Data Science SE' },
+  manufacturing: { site: 'engineering', name: 'Engineering SE' }, lean: { site: 'engineering', name: 'Engineering SE' },
+  semiconductor: { site: 'electronics', name: 'Electrical Engineering SE' }, automation: { site: 'engineering', name: 'Engineering SE' },
+  systems: { site: 'engineering', name: 'Engineering SE' }, safety: { site: 'engineering', name: 'Engineering SE' },
+  reliability: { site: 'engineering', name: 'Engineering SE' }, pm: { site: 'pm', name: 'Project Management SE' },
+  engecon: { site: 'money', name: 'Personal Finance & Money SE' }, work: { site: 'engineering', name: 'Engineering SE' },
+  ergo: { site: 'ux', name: 'User Experience SE' }, facilities: { site: 'engineering', name: 'Engineering SE' },
+  sustain: { site: 'sustainability', name: 'Sustainable Living SE' }, career: { site: 'workplace', name: 'The Workplace SE' },
+}
+
+export interface QA { title: string; url: string; score: number; answers: number; answered: boolean; tags: string[] }
+const decode = (s: string) => { try { return new DOMParser().parseFromString(s, 'text/html').documentElement.textContent || s } catch { return s } }
+/** Real questions practitioners asked about the topic, most relevant first. */
+export const stackQA = (c: Concept) => store<QA[] | null>(`se:${c.id}`, async () => {
+  const { site } = SE_SITE[c.domain]
+  const run = async (text: string) => {
+    const r = await fetch(`https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q=${q(text)}&site=${site}&pagesize=6&filter=default`)
+    if (!r.ok) return []
+    const j = await r.json()
+    return (j.items || []).map((i: { title: string; link: string; score: number; answer_count: number; is_answered: boolean; tags?: string[] }) => ({
+      title: decode(i.title), url: i.link, score: i.score, answers: i.answer_count, answered: i.is_answered, tags: (i.tags || []).slice(0, 3),
+    })) as QA[]
+  }
+  let out = await run(cleanTerm(c.term))
+  if (out.length < 3 && c.full) out = [...out, ...(await run(c.full))].filter((x, i, a) => a.findIndex((y) => y.url === x.url) === i)
+  return out.length ? out.slice(0, 6) : null
+})
+
+/** Free AI summary (Pollinations text API, no key). Third-party output — always labeled as AI. */
+export const aiSummary = (topic: string, context: string, attempt = 0) => store<string | null>(`ai:${topic}:${attempt}`, async () => {
+  const prompt = `In 5 short bullet points, explain "${topic}" (${context}) for an industrial engineering student preparing for job interviews: 1) plain definition, 2) how it works, 3) a real-world example with a number, 4) tools or software used, 5) one likely interview question. Plain text, no markdown headings, under 170 words.`
+  const ctl = new AbortController()
+  const t = setTimeout(() => ctl.abort(), 25000)
+  try {
+    const r = await fetch(`https://text.pollinations.ai/${q(prompt)}`, { signal: ctl.signal })
+    if (!r.ok) return null
+    const text = (await r.text()).trim()
+    return text.length > 40 ? text.replace(/\*\*/g, '').replace(/^#+\s*/gm, '') : null
+  } finally { clearTimeout(t) }
+})

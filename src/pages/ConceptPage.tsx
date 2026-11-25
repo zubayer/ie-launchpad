@@ -8,19 +8,21 @@ import { ALGOS } from '../content/algos'
 import { LEVEL_NAME, type Concept } from '../types'
 import { useStore } from '../lib/store'
 import { makeQuestion, rng } from '../lib/quiz'
-import { links, wikiFor } from '../lib/web'
+import { links, wikiFor, type WikiSummary } from '../lib/web'
 import { StatusBadge, Tex } from '../components/ui'
 import { QuestionCard } from '../components/Quiz'
-import { Linked, WikiCard, useWiki } from '../components/Glossary'
+import { Linked, useWiki } from '../components/Glossary'
 import { MiniMap, Viz } from '../components/Viz'
 import { AlgoFlow } from '../components/Algo'
+import { LiveWeb, prefetchLive } from '../components/LiveWeb'
+import { JobsBlock, RoleChips } from '../components/Jobs'
 
 interface Layer { id: string; name: string }
 
 export const simFor = (c: Concept) => SIM_META.find((s) => s.id === (c.sim || EXTRA_SIM[c.id])) || SIM_META.find((s) => s.concepts.includes(c.id))
 
 function layersFor(c: Concept): Layer[] {
-  const L: Layer[] = [{ id: 'keyword', name: 'Keyword' }, { id: 'plain', name: 'Plain meaning' }]
+  const L: Layer[] = [{ id: 'keyword', name: 'Keyword' }, { id: 'live', name: 'Live from the web' }, { id: 'plain', name: 'Plain meaning' }]
   if (c.analogy) L.push({ id: 'analogy', name: 'Analogy' })
   L.push({ id: 'picture', name: 'Picture it' })
   if (c.why) L.push({ id: 'why', name: 'Why it matters' })
@@ -28,6 +30,7 @@ function layersFor(c: Concept): Layer[] {
   if (ALGOS[c.id]) L.push({ id: 'algo', name: 'Algorithm' })
   if (c.example) L.push({ id: 'example', name: 'Worked example' })
   if (c.real || c.used) L.push({ id: 'real', name: 'On the job' })
+  L.push({ id: 'jobs', name: 'Jobs that need it' })
   if (simFor(c)) L.push({ id: 'sim', name: 'Simulate it' })
   L.push({ id: 'try', name: 'Check yourself' })
   if (c.iq?.length) L.push({ id: 'interview', name: 'Interview' })
@@ -61,10 +64,10 @@ function Block({ id, n, name, children, onSeen }: { id: string; n: number; name:
   )
 }
 
-function ExploreButtons({ c, big = false }: { c: Concept; big?: boolean }) {
+function ExploreButtons({ c, big = false, wiki }: { c: Concept; big?: boolean; wiki?: WikiSummary | null }) {
   const L = links(c)
   const items: [string, string, string][] = [
-    ['Wikipedia', L.wikipedia, 'W'], ['Google', L.google, 'G'], ['Images', L.images, '▣'], ['YouTube video', L.youtube, '▶'], ['Research papers', L.scholar, '§'],
+    ['Wikipedia', wiki?.url || L.wikipedia, 'W'], ...(wiki?.permalink ? [['Wikipedia permalink', wiki.permalink, '⚓'] as [string, string, string]] : []), ['Google', L.google, 'G'], ['Images', L.images, '▣'], ['YouTube video', L.youtube, '▶'], ['Research papers', L.scholar, '§'],
   ]
   return (
     <div className="no-print flex flex-wrap gap-2">
@@ -148,6 +151,7 @@ export default function ConceptPage() {
   const web = useWiki(() => (c ? wikiFor(c) : Promise.resolve(null)), [id])
 
   useEffect(() => { if (c) open(c.id) }, [c, open])
+  useEffect(() => { if (!c) return; const t = setTimeout(() => prefetchLive(c), 1200); return () => clearTimeout(t) }, [c])
   const layers = useMemo(() => (c ? layersFor(c) : []), [c])
   const near = useMemo(() => (c ? neighbors(c) : []), [c])
   const question = useMemo(() => (c ? makeQuestion(c, CONCEPTS, rng(qSeed * 7919 + c.id.length)) : null), [c, qSeed])
@@ -181,7 +185,7 @@ export default function ConceptPage() {
               </li>
             ))}
           </ol>
-          <p className="mt-3 hidden text-xs text-ink-2 lg:block">Hover a dotted word for a quick definition. Select any word to look it up.</p>
+          <p className="mt-3 hidden text-xs text-ink-2 lg:block">Hover a <span className="term-link">dotted</span> word for its card, a <span className="wiki-link">dashed</span> word for Wikipedia — move into the popup to click. Select any word to look it up.</p>
         </div>
       </nav>
 
@@ -199,6 +203,7 @@ export default function ConceptPage() {
                 {c.used?.freq && <span className="chip">In job postings: {c.used.freq}</span>}
                 {c.aka?.slice(0, 5).map((a) => <span key={a} className="chip">also: {a}</span>)}
               </div>
+              <RoleChips c={c} />
             </div>
             {web.data?.thumb && (
               <figure className="hidden w-44 md:block">
@@ -212,7 +217,11 @@ export default function ConceptPage() {
             <button className="btn-ghost btn" onClick={() => toggleBookmark(c.id)}>{bookmarked ? 'Bookmarked' : 'Bookmark'}</button>
             {sim && <a className="btn-tape btn" href="#sim" onClick={(e) => { e.preventDefault(); document.getElementById('sim')?.scrollIntoView({ behavior: 'smooth' }) }}>Simulate it</a>}
           </div>
-          <div className="mt-3"><ExploreButtons c={c} /></div>
+          <div className="mt-3"><ExploreButtons c={c} wiki={web.data} /></div>
+        </Block>
+
+        <Block id="live" n={idx('live')} name="Live from the web" onSeen={onSeen}>
+          <LiveWeb key={c.id} c={c} wiki={web} />
         </Block>
 
         <Block id="plain" n={idx('plain')} name="Plain meaning" onSeen={onSeen}>
@@ -297,7 +306,7 @@ export default function ConceptPage() {
               <dl className="mt-4 grid gap-3 sm:grid-cols-3">
                 {c.used.ind && <div><dt className="label">Industries</dt><dd>{c.used.ind.join(', ')}</dd></div>}
                 {c.used.roles && <div><dt className="label">Who uses it</dt><dd>{c.used.roles.join(', ')}</dd></div>}
-                {c.used.tools && <div><dt className="label">Tools</dt><dd>{c.used.tools.join(', ')}</dd></div>}
+                {c.used.tools && <div><dt className="label">Tools</dt><dd><Linked text={c.used.tools.join(', ')} self={c.id} /></dd></div>}
               </dl>
             )}
             {c.mistakes && (
@@ -310,6 +319,10 @@ export default function ConceptPage() {
             <p className="mt-4 text-sm"><a className="underline" href={links(c).youtube} target="_blank" rel="noopener noreferrer">▶ See it done in real life on YouTube ↗</a></p>
           </Block>
         )}
+
+        <Block id="jobs" n={idx('jobs')} name="Jobs that need it" onSeen={onSeen}>
+          <JobsBlock c={c} />
+        </Block>
 
         {sim && (
           <Block id="sim" n={idx('sim')} name="Simulate it" onSeen={onSeen}>
@@ -345,12 +358,8 @@ export default function ConceptPage() {
         </Block>
 
         <Block id="more" n={idx('more')} name="Learn more" onSeen={onSeen}>
-          <div className="rounded-lg border border-line p-4">
-            <p className="label mb-2">What Wikipedia says</p>
-            <WikiCard data={web.data} loading={web.loading} query={c.full || c.term} />
-          </div>
-          <p className="label mb-2 mt-5">Search further (opens a new tab)</p>
-          <ExploreButtons c={c} big />
+          <p className="label mb-2">Search further (opens a new tab)</p>
+          <ExploreButtons c={c} big wiki={web.data} />
           {near.length > 0 && (
             <div className="mt-5">
               <p className="label mb-2">Connected concepts</p>
