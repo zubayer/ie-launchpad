@@ -1,12 +1,26 @@
+import { lazy, Suspense, type ComponentType } from 'react'
 import { HashRouter, Route, Routes, Link } from 'react-router-dom'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import ConceptPage from './pages/ConceptPage'
-import { CheatSheet, Directory, DomainPage, Domains } from './pages/Browse'
-import { Practice, Review } from './pages/Study'
-import { Lab, LabPage } from './pages/Lab'
-import { Interview, RolePage, Roles } from './pages/Career'
-import { Graph, Method, Plan, Progress } from './pages/Misc'
+
+const page = <M extends Record<string, unknown>>(f: () => Promise<M>, name: keyof M) =>
+  lazy(() => f().then((m) => ({ default: m[name] as ComponentType })))
+const Directory = page(() => import('./pages/Browse'), 'Directory')
+const Domains = page(() => import('./pages/Browse'), 'Domains')
+const DomainPage = page(() => import('./pages/Browse'), 'DomainPage')
+const CheatSheet = page(() => import('./pages/Browse'), 'CheatSheet')
+const Review = page(() => import('./pages/Study'), 'Review')
+const Practice = page(() => import('./pages/Study'), 'Practice')
+const Lab = page(() => import('./pages/Lab'), 'Lab')
+const LabPage = page(() => import('./pages/Lab'), 'LabPage')
+const Roles = page(() => import('./pages/Career'), 'Roles')
+const RolePage = page(() => import('./pages/Career'), 'RolePage')
+const Interview = page(() => import('./pages/Career'), 'Interview')
+const Plan = page(() => import('./pages/Misc'), 'Plan')
+const Graph = page(() => import('./pages/Misc'), 'Graph')
+const Progress = page(() => import('./pages/Misc'), 'Progress')
+const Method = page(() => import('./pages/Misc'), 'Method')
 
 function NotFound() {
   return (
@@ -20,6 +34,7 @@ function NotFound() {
 export default function App() {
   return (
     <HashRouter>
+      <Suspense fallback={<p className="p-8 text-ink-2">Loading…</p>}>
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Home />} />
@@ -42,6 +57,7 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
+      </Suspense>
     </HashRouter>
   )
 }

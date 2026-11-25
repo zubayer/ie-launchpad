@@ -100,7 +100,7 @@ export function Graph() {
       .force('charge', forceManyBody().strength(dom ? -180 : -40))
       .force('center', forceCenter(W / 2, H / 2))
       .force('collide', forceCollide(dom ? 22 : 8))
-    s.on('tick', () => setNodes([...ns]))
+    s.on('tick', () => { ns.forEach((n) => { n.x = Math.max(40, Math.min(W - 40, n.x ?? 0)); n.y = Math.max(24, Math.min(H - 16, n.y ?? 0)) }); setNodes([...ns]) })
     sim.current = s
     return () => { s.stop() }
   }, [list, links, dom])

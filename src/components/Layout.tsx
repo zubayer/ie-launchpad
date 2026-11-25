@@ -132,7 +132,7 @@ export default function Layout() {
       >
         <div className="flex h-full flex-col">
           <NavLink to="/" className="block px-5 pb-4 pt-5">
-            <span className="display block text-[1.65rem] leading-none">IE Launch&shy;pad</span>
+            <span className="display block whitespace-nowrap text-[1.42rem] leading-none">IE Launchpad</span>
             <span className="mt-1 block text-sm text-ink-2">Coursework to job offer</span>
           </NavLink>
           <div className="hazard mx-5 mb-3 h-1.5 rounded-sm" aria-hidden />

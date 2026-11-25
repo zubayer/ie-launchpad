@@ -31,7 +31,11 @@ const RULES = ['', 'Rule 1: one point beyond 3σ', 'Rule 2: 2 of 3 beyond 2σ, s
 
 export default function ControlChart() {
   const rng = useRef(makeRng(7))
-  const [pts, setPts] = useState<{ x: number; r: number; d: Disturb }[]>([])
+  const [pts, setPts] = useState<{ x: number; r: number; d: Disturb }[]>(() =>
+    Array.from({ length: 20 }, () => {
+      const sub = Array.from({ length: N }, () => rng.current.normal(MU, SIGMA))
+      return { x: mean(sub), r: Math.max(...sub) - Math.min(...sub), d: 'none' as Disturb }
+    }))
   const [dist, setDist] = useState<Disturb>('none')
   const [mag, setMag] = useState(1)
   const since = useRef(0)
